@@ -1,6 +1,8 @@
 import hashlib
 from dotenv import load_dotenv
 import time
+import os
+
 
 load_dotenv()
 
@@ -9,7 +11,7 @@ load_dotenv()
 # ============================================================================
 from langchain_community.document_loaders import PyPDFLoader
 
-file_path = r"C:\Users\monster\Desktop\Coding\shipit\data\10. Payment Services Act.pdf"
+file_path = "data/10. Payment Services Act.pdf"
 loader = PyPDFLoader(file_path)
 docs = loader.load()
 
@@ -274,7 +276,7 @@ def run_rag_pipeline(user_query, config):
     response = llm.invoke(messages)
     answer = response.content
     
-# Calculate context overlap
+    # Calculate context overlap
     context_overlap = calculate_context_overlap(answer, retrieved_text)
 
     # Detect language
@@ -305,28 +307,60 @@ def run_rag_pipeline(user_query, config):
 
 
 
-# Test configurations
-configs_to_test = [
-    {"top_k": 1, "temperature": 0.1},   # Minimal context
-    {"top_k": 3, "temperature": 0.1},   # Current
-    {"top_k": 5, "temperature": 0.1},   # More context
-    {"top_k": 10, "temperature": 0.1},  # Maximum context
+# ============================================================================
+# Experiment 1: Vary top_k (retrieval depth) - FIXED temperature
+# ============================================================================
+print("\n" + "="*80)
+print("EXPERIMENT 1: Testing top_k impact (retrieval depth)")
+print("="*80 + "\n")
+
+configs_exp1 = [
+    {"top_k": 1, "temperature": 0.1},
+    {"top_k": 3, "temperature": 0.1},
+    {"top_k": 5, "temperature": 0.1},
+    {"top_k": 10, "temperature": 0.1},
 ]
 
-# Run experiments
-for config in configs_to_test:
+for config in configs_exp1:
     query = "What are the payment laws?"
     answer, log = run_rag_pipeline(query, config)
     
-    # Save to file
     with open("rag_logs.jsonl", "a") as f:
         f.write(json.dumps(log) + "\n")
     
     print(f"Config: {config}")
     print(f"Scores - Min: {log['retrieval']['min_score']:.2f}, Max: {log['retrieval']['max_score']:.2f}, Avg: {log['retrieval']['avg_score']:.2f}")
     print(f"Response length: {log['generation']['response_length']}")
-    # print(f"Context overlap: {log['generation']['context_overlap']}")  # Misleading: context is Japanese, response is English
     print(f"Language: {log['generation']['language']} (English ratio: {log['generation']['english_ratio']})")
     print(f"\nResponse:\n{answer}")
     print("-" * 80 + "\n")
 
+
+# ============================================================================
+# Experiment 2: Vary temperature (generation randomness) - FIXED top_k
+# ============================================================================
+print("\n" + "="*80)
+print("EXPERIMENT 2: Testing temperature impact (generation randomness)")
+print("="*80 + "\n")
+
+configs_exp2 = [
+    {"top_k": 3, "temperature": 0.0},
+    {"top_k": 3, "temperature": 0.1},
+    {"top_k": 3, "temperature": 0.3},
+    {"top_k": 3, "temperature": 0.5},
+    {"top_k": 3, "temperature": 1.0},
+]
+
+for config in configs_exp2:
+    query = "What are the payment laws?"
+    answer, log = run_rag_pipeline(query, config)
+    
+    with open("rag_logs.jsonl", "a") as f:
+        f.write(json.dumps(log) + "\n")
+    
+    print(f"Config: {config}")
+    print(f"Scores - Min: {log['retrieval']['min_score']:.2f}, Max: {log['retrieval']['max_score']:.2f}, Avg: {log['retrieval']['avg_score']:.2f}")
+    print(f"Response length: {log['generation']['response_length']}")
+    print(f"Language: {log['generation']['language']} (English ratio: {log['generation']['english_ratio']})")
+    print(f"\nResponse:\n{answer}")
+    print("-" * 80 + "\n")

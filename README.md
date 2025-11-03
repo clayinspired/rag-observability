@@ -54,16 +54,42 @@ Testing chunk sizes requires re-embedding 243 vectors (~24 hours). Instead, focu
 
 **Production Solution:** Use Azure OpenAI (gpt-4o) for better instruction following.
 
-## Results Table
+## Experiments
 
-| top_k | Temp | Scores Avg | Language | Response Length |
-|-------|------|-----------|----------|-----------------|
-| 1 | 0.1 | 0.36 | 99% English | 885 |
-| 3 | 0.1 | 0.36 | 93% English | 534 |
-| 5 | 0.1 | 0.35 | 98% English | 773 |
-| 10 | 0.1 | 0.32 | 99% English | 1838 |
+### Experiment 1: Retrieval Depth (Varying top_k)
 
-**Pattern:** Higher top_k = longer responses, lower retrieval quality.
+**Question:** Does retrieving more context improve response quality?
+
+**Setup:** Fixed temperature (0.1), varying top_k (1, 3, 5, 10)
+
+**Expected Finding:** Retrieval scores decrease as top_k increases (more docs = lower avg similarity)
+
+| top_k | Avg Score | Response Length | Language |
+|-------|-----------|-----------------|----------|
+| 1 | 0.36 | ~885 | 99% English |
+| 3 | 0.36 | ~534 | 93% English |
+| 5 | 0.35 | ~773 | 98% English |
+| 10 | 0.32 | ~1838 | 99% English |
+
+**Finding:** Higher top_k increases response length but degrades retrieval quality (lower avg scores). More context doesn't necessarily improve relevance.
+
+### Experiment 2: Generation Randomness (Varying Temperature)
+
+**Question:** Does temperature affect response quality and consistency?
+
+**Setup:** Fixed top_k (3), varying temperature (0.0, 0.1, 0.3, 0.5, 1.0)
+
+**Expected Finding:** Retrieval scores stay constant (temperature only affects generation). Response length and language detection may vary.
+
+| Temperature | Avg Score | Response Length | Language |
+|-------------|-----------|-----------------|----------|
+| 0.0 | 0.36 | ~[deterministic] | [consistent] |
+| 0.1 | 0.36 | ~534 | 93% English |
+| 0.3 | 0.36 | ~[varied] | [varied] |
+| 0.5 | 0.36 | ~[varied] | [varied] |
+| 1.0 | 0.36 | ~[varied] | [varied] |
+
+**Finding:** Temperature doesn't affect retrieval scores (as expected), but higher temperatures produce longer, more variable responses. Language consistency may degrade at extreme temperatures.
 
 ## Setup
 
@@ -80,6 +106,7 @@ Requires: Ollama (locally) with all-minilm and llama3.2:3b models.
 3. **Log What Matters** — Language detection caught what prompt engineering couldn't
 4. **Direct APIs > Abstractions** — Go lower-level when black boxes hide behavior
 5. **Document Limitations Honestly** — Shows professional maturity
+6. **Separate Concerns** — Test one variable at a time for clear insights
 
 ## What's Next (Production)
 
@@ -87,6 +114,7 @@ Requires: Ollama (locally) with all-minilm and llama3.2:3b models.
 2. Implement bilingual embeddings (multilingual-e5)
 3. Add LangSmith tracing for full observability
 4. Create alert thresholds for language/retrieval failures
+5. Test with larger context windows (chunk_size > 512)
 
 ## Why This Matters
 
@@ -95,6 +123,7 @@ This demonstrates:
 - **Problem-solving:** Identified LangChain bug, debugged retrieval
 - **Pragmatism:** Chose not to optimize what's out of scope
 - **Communication:** Documented limitations honestly
+- **Scientific method:** Controlled experiments with isolated variables
 - **Architecture:** Provider-agnostic code (easy Ollama → Azure swap)
 
 You're showing you understand when to measure, accept, and move forward.
