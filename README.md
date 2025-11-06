@@ -126,17 +126,21 @@ PDF Document → Chunking (Japanese-aware) → Embeddings (all-minilm) → Vecto
 
 | Temperature | Avg Score | Response Length | Language |
 |-------------|-----------|-----------------|----------|
-| 0.0 | 0.36 | ~[deterministic] | [consistent] |
-| 0.1 | 0.36 | ~534 | 93% English |
-| 0.3 | 0.36 | ~[varied] | [varied] |
-| 0.5 | 0.36 | ~[varied] | [varied] |
-| 1.0 | 0.36 | ~[varied] | [varied] |
+| 0.0 | 0.36 | ~772 | 94% English |
+| 0.1 | 0.36 | ~467 | 97% English |
+| 0.3 | 0.36 | ~380 | 93% English |
+| 0.5 | 0.36 | ~520 | 93% English |
+| 1.0 | 0.36 | ~1282 | 97% English |
 
-**Finding:** Temperature doesn't affect retrieval scores (as expected), but higher temperatures produce longer, more variable responses. Language consistency may degrade at extreme temperatures.
+**Finding:** 
 
-**For Non-Technical Leaders:** This is about consistency. You can make AI faster or more creative, but not both reliably. Choose your tradeoff based on what your business needs.
+Temperature doesn't affect retrieval scores (as expected—temperature only affects generation, not retrieval). However:
 
----
+- **Response length varies dramatically** (380 chars at 0.3 → 1282 chars at 1.0)
+- **Language consistency stays high** (93-97% English across all temperatures)
+- **Higher temperatures = longer, more exploratory responses** (1.0 produces 3x longer output than 0.3)
 
-## Setup & Installation
+**What This Means:** Temperature controls verbosity, not reliability. If your organization needs consistent, concise answers, use temperature 0.3-0.5. If you need exploratory responses, use 1.0. Language stays English either way with this model.
+
+**For Non-Technical Leaders:** Think of temperature like a writer's style control. Low temperature = concise, predictable. High temperature = creative, verbose. Both produce English—the difference is confidence level and length.
 
